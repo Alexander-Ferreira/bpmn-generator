@@ -12,14 +12,14 @@ Este proyecto convierte descripciones de procesos de negocio en diagramas BPMN v
 
 ## 🧰 Tecnologías
 
--JavaScript (vanilla o con framework)
+- JavaScript (vanilla o con framework)
 
--bpmn-js
+- bpmn-js
 
--HTML + CSS
+- HTML + CSS
 
--Gemini IA 
+- Gemini IA 
 
-##Importante
+## Importante
 
 En el archivo .evn en la parte de GOOGLE_API_KEY poner su propia clave key de google.
