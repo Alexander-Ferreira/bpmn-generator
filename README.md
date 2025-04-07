@@ -1,8 +1,8 @@
-#Conversor de Descripción a BPMN
+# Conversor de Descripción a BPMN
 
 Este proyecto convierte descripciones de procesos de negocio en diagramas BPMN visualizables con bpmn.io.
 
-##🚀 ¿Cómo funciona?
+## 🚀 ¿Cómo funciona?
 
 1. Ingresás una descripción de proceso en texto natural.
 
