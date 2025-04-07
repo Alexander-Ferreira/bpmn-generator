@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador BPMN Pro</title>
+
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <h1>Generador de Diagramas BPMN</h1>
+    <div id="app">
+
+    <!-- Encabezado -->
+    <header class="app-header">
+      <h1><i class="icon-bpmn"></i> Generador BPMN</h1>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+
+      <!-- Sección de entrada -->
+      <section class="input-section">
+        <label for="description" class="input-label">Describe tu proceso:</label>
+        <textarea
+          id="description"
+          class="process-input"
+          placeholder="Ej: El cliente realiza un pedido, el sistema verifica stock, si hay disponibilidad se confirma el pedido..."
+        ></textarea>
+
+        <button id="generate-btn" class="generate-button">
+          <span id="button-text">Generar Diagrama</span>
+          <span id="spinner" class="spinner hidden"></span>
+        </button>
+
+        <div id="error-message" class="error-message hidden"></div>
+      </section>
+
+      <!-- Sección de salida -->
+      <section class="output-section">
+        <h2>Diagrama Generado</h2>
+        <div class="diagram-container">
+          <div id="bpmn-container" class="bpmn-viewer"></div>
+          <pre id="bpmn-result" class="hidden"></pre>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="app-footer">
+      <p>© 2025 Generador BPMN | Versión 2.0</p>
+    </footer>
+  </div>
+
+  <!-- Librería BPMN -->
+  <script src="https://unpkg.com/bpmn-js@10.0.0/dist/bpmn-viewer.development.js"></script>
+
+  <script src="/static/js/main.js"></script>
+  <!-- Script principal -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const descriptionInput = document.getElementById('description');
+      const generateBtn = document.getElementById('generate-btn');
+      const errorDiv = document.getElementById('error-message');
+      const resultDiv = document.getElementById('bpmn-result');
+      const spinner = document.getElementById('spinner');
+
+      const viewer = new BpmnJS({ container: '#bpmn-container' });
+
+      async function generateBPMN() {
+        const description = descriptionInput.value.trim();
+
+        if (!description) {
+          showError("Por favor describe el proceso");
+          return;
+        }
+
+        try {
+          generateBtn.disabled = true;
+          spinner.classList.remove('hidden');
+          errorDiv.classList.add('hidden');
+
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Error al generar el diagrama");
+          }
+
+          const data = await response.json();
+
+          resultDiv.textContent = data.bpmn;
+          resultDiv.classList.remove('hidden');
+
+          try {
+            await viewer.importXML(data.bpmn);
+          } catch (e) {
+            console.warn("Error al renderizar BPMN:", e);
+          }
+
+        } catch (error) {
+          showError(error.message);
+          if (error.message.includes("límite")) {
+            errorDiv.classList.add('rate-limit');
+          }
+        } finally {
+          generateBtn.disabled = false;
+          spinner.classList.add('hidden');
+        }
+      }
+
+      function showError(message) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+        resultDiv.classList.add('hidden');
+      }
+
+      generateBtn.addEventListener('click', generateBPMN);
+
+      descriptionInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          generateBPMN();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
